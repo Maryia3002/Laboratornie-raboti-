@@ -1,0 +1,67 @@
+#include <iostream>
+#include <cmath>
+#include <string>
+#include <exception>
+
+// Класс для пользовательского исключения
+class CustomException : public std::exception {
+private:
+ std::string error_message;
+ double value;
+ int code;
+public:
+ CustomException(const std::string& msg, double val, int errCode)
+  : error_message(msg), value(val), code(errCode) {}
+
+ const char* what() const noexcept override {
+  return error_message.c_str();
+ }
+
+ double getValue() const {
+  return value;
+ }
+
+ int getCode_of_error() const {
+  return code;
+ }
+};
+
+// Функция для вычисления Z1
+void calculate_z1(double& z1, double m) {
+ if (m < 0) {
+  throw CustomException("Ошибка: m не может быть отрицательным.", m, 1); // Строка 27
+ }
+ double numerator = sqrt(2 * m + 2 * (sqrt(m*m - 4)));
+ double denominator = sqrt(m*m - 4) + m + 2;
+ if (denominator == 0) {
+  throw CustomException("Ошибка: деление на ноль.", denominator, 2); // Строка 31
+ }
+ z1 = numerator / denominator;
+
+}
+
+// Функция для вычисления Z2
+void calculate_z2(double& z2, double m) {
+ if (m < 0) {
+  throw CustomException("Ошибка: m не может быть отрицательным.", m, 1); // Строка 45
+ }
+ z2 = 1 / sqrt(m + 2);
+}
+
+int main() {
+ setlocale(LC_ALL, "russian");
+ double m = 2;
+ double z1, z2;
+ try {
+  calculate_z1(z1, m);
+  calculate_z2(z2, m);
+ }
+ catch (const CustomException& e) {
+  std::cerr << "Исключение: " << e.what() << " Значение: " << e.getValue() << " Код ошибки: " << e.getCode_of_error() << std::endl;
+  z2 = NAN; // Устанавливаем z2 в NaN в случае ошибки
+ }
+ std::cout << "z1 = " << z1 << std::endl;
+ std::cout << "z2 = " << z2 << std::endl;
+ return 0;
+
+}
