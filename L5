@@ -1,0 +1,179 @@
+#include <iostream>
+#include <list>
+#include <initializer_list>
+#include <stdexcept>
+
+class CustomException : public std::runtime_error {
+public:
+    explicit CustomException(const std::string& message) : std::runtime_error(message) {}
+};
+
+template <typename T>
+class Vect {
+private:
+    std::list<T> data;
+
+public:
+    
+    Vect() = default;
+
+
+    Vect(std::initializer_list<T> ilist) : data(ilist) {}
+
+   
+    Vect(const Vect& other) : data(other.data) {}
+
+  
+    Vect& operator=(const Vect& other) {
+        if (this != &other) {
+            data = other.data;
+        }
+        return *this;
+    }
+
+ 
+    Vect(Vect&& other) noexcept : data(std::move(other.data)) {}
+
+  
+    Vect& operator=(Vect&& other) noexcept {
+        if (this != &other) {
+            data = std::move(other.data);
+        }
+        return *this;
+    }
+
+
+    void push_back(const T& value) {
+        data.push_back(value);
+    }
+
+ 
+    void pop_back() {
+        if (data.empty()) {
+            throw std::out_of_range("Vect is empty");
+        }
+        data.pop_back();
+    }
+
+  
+    size_t size() const {
+        return data.size();
+    }
+
+    
+    T& at(size_t index) {
+        if (index >= data.size()) {
+            throw std::out_of_range("Index out of range");
+        }
+        auto it = data.begin();
+        std::advance(it, index);
+        return *it;
+    }
+
+    const T& at(size_t index) const {
+        if (index >= data.size()) {
+            throw std::out_of_range("Index out of range");
+        }
+        auto it = data.cbegin();
+        std::advance(it, index);
+        return *it;
+    }
+
+    
+    class PositiveIterator {
+    private:
+        typename std::list<T>::iterator current;
+        typename std::list<T>::iterator end;
+
+    public:
+        PositiveIterator(typename std::list<T>::iterator start, typename std::list<T>::iterator end)
+            : current(start), end(end) {
+            while (current != end && *current <= 0) {
+                ++current;
+            }
+        }
+
+        bool hasNext() const {
+            return current != end;
+        }
+
+        T next() {
+            if (current == end) {
+                throw CustomException("No more positive elements.");
+            }
+            T value = *current;
+            do {
+                ++current;
+            } while (current != end && *current <= 0);
+            return value;
+        }
+    };
+
+  
+    class NegativeIterator {
+    private:
+        typename std::list<T>::iterator current;
+        typename std::list<T>::iterator end;
+
+    public:
+        NegativeIterator(typename std::list<T>::iterator start, typename std::list<T>::iterator end)
+            : current(start), end(end) {
+            while (current != end && *current >= 0) {
+                ++current;
+            }
+        }
+
+        bool hasNext() const {
+            return current != end;
+        }
+
+        T next() {
+            if (current == end) {
+                throw CustomException("No more negative elements.");
+            }
+            T value = *current;
+            do {
+                ++current;
+            } while (current != end && *current >= 0);
+            return value;
+        }
+    };
+
+    PositiveIterator positive_begin() {
+        return PositiveIterator(data.begin(), data.end());
+    }
+
+    NegativeIterator negative_begin() {
+        return NegativeIterator(data.begin(), data.end());
+    }
+};
+
+int main() {
+    try {
+        Vect<int> v = {1, -2, 3, -4, 5, 6, -7};
+        v.push_back(8);
+        std::cout << "Size: " << v.size() << std::endl;
+Vect<int>::PositiveIterator pos_it = v.positive_begin();
+        std::cout << "Positive elements: ";
+        while (pos_it.hasNext()) {
+            std::cout << pos_it.next() << " ";
+        }
+        std::cout << std::endl;
+
+        Vect<int>::NegativeIterator neg_it = v.negative_begin();
+        std::cout << "Negative elements: ";
+        while (neg_it.hasNext()) {
+            std::cout << neg_it.next() << " ";
+        }
+        std::cout << std::endl;
+
+        v.pop_back();
+        std::cout << "Size after pop_back: " << v.size() << std::endl;
+    } catch (const CustomException& e) {
+        std::cerr << "CustomException: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+    }
+
+    return 0;
+}
