@@ -1,0 +1,23 @@
+#include <iostream>
+#include <iomanip> 
+#include <cctype>  
+
+using namespace std;
+int main() {
+    setlocale(LC_ALL, "Russian");
+    char ch;
+    cout << "Введите символы (для завершения ввода нажмите Ctrl+D):" << endl;
+
+    while (cin >> noskipws >> ch) { 
+        char lower_ch = tolower(ch);
+        cout << "Символ: " << lower_ch 
+             << ", Шестнадцатеричный код: " << hex << setw(2) << setfill('0') << (int)lower_ch 
+             << ", Восьмеричный код: " << oct << setw(3) << setfill('0') << (int)lower_ch 
+             << endl;
+    }
+    return 0;
+}
+
+
+
+
