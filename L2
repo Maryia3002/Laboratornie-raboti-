@@ -1,0 +1,125 @@
+#include <initializer_list>
+#include <iostream>
+#include <string>
+
+namespace containers {
+template <typename T>
+class Stack {
+public:
+    struct Node {
+        T value;
+    private:
+        Node* next; 
+        Node(T val) : value(val), next(nullptr) {} 
+        friend class Stack; 
+    };
+
+    Stack() : head(nullptr), size(0) {}
+    Stack(std::initializer_list<T> initList) : head(nullptr), size(0) {
+        for (const T& item : initList) {
+            push(item);
+        }
+    }
+
+    Stack(const Stack& other) : head(nullptr), size(0) {
+        Node* current = other.head;
+        while (current) {
+            push(current->value);
+            current = current->next;
+        }
+    }
+
+    Stack& operator=(const Stack& other) {
+        if (this != &other) {
+            clear();
+            Node* current = other.head;
+            while (current) {
+                push(current->value);
+                current = current->next;
+            }
+        }
+        return *this;
+    }
+
+    Stack(Stack&& other) noexcept : head(other.head), size(other.size) {
+        other.head = nullptr;
+        other.size = 0;
+    }
+
+    Stack& operator=(Stack&& other) noexcept {
+        if (this != &other) {
+            clear();
+            head = other.head;
+            size = other.size;
+            other.head = nullptr;
+            other.size = 0;
+        }
+        return *this;
+    }
+
+    ~Stack() {
+        clear();
+    }
+
+    void push(const T& value) {
+        Node* newNode = new Node(value);
+        newNode->next = head;
+        head = newNode;
+        ++size;
+    }
+
+    void pop() {
+        if (head) {
+            Node* temp = head;
+            head = head->next;
+            delete temp;
+            --size;
+        }
+    }
+
+    T& operator[](std::size_t index) {
+        if (index >= size) throw std::out_of_range("Index out of range");
+        Node* current = head;
+        for (std::size_t i = 0; i < index; ++i) {
+            current = current->next;
+        }
+        return current->value;
+    }
+
+    const T& operator[](std::size_t index) const {
+        if (index >= size) throw std::out_of_range("Index out of range");
+        Node* current = head;
+        for (std::size_t i = 0; i < index; ++i) {
+            current = current->next;
+        }
+        return current->value;
+    }
+
+    std::size_t getSize() const {
+        return size;
+    }
+
+private:
+    Node* head; 
+    std::size_t size; 
+
+    void clear() {
+        while (head) {
+            pop();
+        }
+    }
+};
+
+} // namespace containers
+
+int main() {
+    containers::Stack<int> intStack = {1, 2, 3};
+    containers::Stack<double> doubleStack = {1.1, 2.2, 3.3};
+    containers::Stack<std::string> stringStack = {"first", "second", "third"};
+
+    std::cout << "intStack[0]: " << intStack[0] << "\n";
+    std::cout << "doubleStack[1]: " << doubleStack[1] << "\n";
+    std::cout << "stringStack[2]: " << stringStack[2] << "\n";
+
+    return 0;
+}
